@@ -1,10 +1,12 @@
 import Head from 'next/head'
-import Link from 'next/link'
 import Layout from 'components/Layout'
 import FeedCard from 'components/FeedCard'
 import { useQuery, gql } from '@apollo/client'
 import { FeedRow, PageInfo } from 'graphql/resolvers/Query/feed'
-import { useRef, useState, useEffect } from 'react'
+import { useState } from 'react'
+import Filters from 'components/Filters'
+import Button from 'components/Button'
+import LoadMore from 'components/LoadMore'
 
 
 const FEED_QUERY = gql`
@@ -79,16 +81,21 @@ export default function Home() {
       <Head>
         <title>On Deck Newsfeed</title>
       </Head>
-      <h1>Hello there!</h1>
-      <p>Your future newsfeed goes to this page. Or not, you decide 🤷</p>
-      <span>Check out these pages:</span>
-
+      <h1>Welcome to your On Deck newsfeed!</h1>
+      
       <div>
-        
-        <button onClick={() => setUserType('writers')}>Writer🖋</button>
-        <button onClick={() => setUserType('founders')}>Founder ⚙️</button>
-        <button onClick={() => setUserType('angels')}>Angel 🚀</button>
+        <p>
+          Here is a list of interesting things happening: new people joining, announcements, published projects.
+        </p>
+        <p>Also you can filter given your interests:</p>
       </div>
+
+      <Filters>
+        <Button onClick={() => setUserType('writers')}>Writer🖋</Button>
+        <Button onClick={() => setUserType('founders')}>Founder ⚙️</Button>
+        <Button onClick={() => setUserType('angels')}>Angel 🚀</Button>
+        <Button onClick={() => setUserType('')}>Everyone 🤗</Button>
+      </Filters>
 
       <div id="list">
         {data && data.feed.edges.map(f => (
@@ -98,7 +105,8 @@ export default function Home() {
         {loading && <div>loading...</div>}
 
         {hasNextPage && (
-          <button
+          <LoadMore>
+          <Button
             id="buttonLoadMore"
             disabled={isRefetching}
             onClick={() => {
@@ -108,7 +116,8 @@ export default function Home() {
                 }
               })
             }}
-          >Load more...</button>
+          >Load more...</Button>
+          </LoadMore>
         )}
       </div>
     </Layout>
