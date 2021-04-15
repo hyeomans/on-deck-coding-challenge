@@ -1,5 +1,5 @@
-import { FeedRow } from "graphql/resolvers/Query/feed"
 import Link from 'next/link'
+import { FeedRow } from "graphql/resolvers/Query/feed"
 import styled from 'styled-components'
 import Markdown from './Markdown'
 
@@ -8,20 +8,43 @@ type Props = {
   feedRow: Omit<FeedRow, 'created_ts'>;
 }
 
-export default function FeedCard({feedRow}: Props) {
+export default function FeedCard({ feedRow }: Props) {
+  if (feedRow.type === 'Announcement') {
+    return (
+      <Card>
+        <Columns>
+          <ColumnLeft>
+            <Avatar src={feedRow.avatar_url} />
+          </ColumnLeft>
+          <ColumnRight>
+            <h2>{feedRow.type}</h2>
+            <h3>{feedRow.name}</h3>
+            <Markdown>{feedRow.desc}</Markdown>
+          </ColumnRight>
+        </Columns>
+      </Card>
+    )
+  }
+
+  const href = feedRow.type === 'User' 
+  ? `/users/${feedRow.id}`
+  : `/projects/${feedRow.id}`
+
   return (
-    <Card>
-      <Columns>
-        <ColumnLeft>
-          <Avatar src={feedRow.avatar_url}/>
-        </ColumnLeft>
-        <ColumnRight>
-          <h2>{feedRow.type}</h2>
-          <h3>{feedRow.name}</h3>
-          <Markdown>{feedRow.desc}</Markdown>
-        </ColumnRight>
-      </Columns>
-    </Card>
+    <Link href={href}>
+      <Card style={{cursor: 'pointer'}}>
+        <Columns>
+          <ColumnLeft>
+            <Avatar src={feedRow.avatar_url} />
+          </ColumnLeft>
+          <ColumnRight>
+            <h2>{feedRow.type}</h2>
+            <h3>{feedRow.name}</h3>
+            <Markdown>{feedRow.desc}</Markdown>
+          </ColumnRight>
+        </Columns>
+      </Card>
+    </Link>
   )
 }
 
