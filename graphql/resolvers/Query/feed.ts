@@ -1,7 +1,7 @@
 import db from '../../db'
 
 type Args = {
-  cursor: string;
+  after: string;
   userType: string;
 }
 
@@ -15,12 +15,17 @@ export type FeedRow = {
 }
 
 export type PageInfo = {
-  hasMore: boolean;
-  next: string | null;
+  hasNextPage: boolean;
+  endCursor: string | null;
+}
+
+export type Edge = {
+  cursor: string;
+  node: FeedRow;
 }
 
 export type Response = {
-  edges: FeedRow[]
+  edges: Edge[]
   pageInfo: PageInfo
 }
 
@@ -32,9 +37,6 @@ const writerFeed = async (decodedCursor: string | null): Promise<FeedRow[]> => {
     select id, name, bio as desc, created_ts, avatar_url, 'User' AS type
     from users
     where fellowship = 'writers'
-    union all
-    select id, name, description as desc, created_ts, icon_url as avatar_url, 'Project' AS type
-    from projects
     union all
     select id, title, body as desc, created_ts, 'https://avatars.dicebear.com/api/bottts/announcements.svg' as avatar_url, 'Announcement' AS type
     from announcements
@@ -93,10 +95,10 @@ const generalFeed = async (decodedCursor: string | null): Promise<FeedRow[]> => 
   return decodedCursor ?  db.getAll(query, [decodedCursor]) : db.getAll(query)
 }
 
-export default async function feed(parent: unknown, { cursor, userType }: Args): Promise<Response> {
+export default async function feed(parent: unknown, { after, userType }: Args): Promise<Response> {
   let next: string | null = null
   let hasMore = false
-  let decodedCursor: string | null = cursor ? Buffer.from(cursor, 'base64').toString('ascii') : null
+  let decodedCursor: string | null = after ? Buffer.from(after, 'base64').toString('ascii') : null
 
   let feedRows: FeedRow[]
   if(userType && userType === 'writers') {
@@ -116,7 +118,16 @@ export default async function feed(parent: unknown, { cursor, userType }: Args):
   }
 
   return {
-    edges: feedRows,
-    pageInfo: {hasMore, next}
+    pageInfo: {
+      endCursor: next,
+      hasNextPage: hasMore
+    },
+    edges: feedRows.map(fr => {
+      const cursor = Buffer.from(`${fr.id}:${fr.name}:${fr.type}`).toString('base64')
+      return {
+        cursor,
+        node: fr
+      }
+    })
   }
 }

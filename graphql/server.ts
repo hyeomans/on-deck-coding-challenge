@@ -28,20 +28,25 @@ const typeDefs = gql`
     avatar_url: String!
   }
 
+  type Edge {
+    cursor: String
+    node: Feed
+  }
+
   type PageInfo {
-    hasMore: Boolean
-    next: String
+    endCursor: String
+    hasNextPage: Boolean
   }
 
   type Response {
-    edges: [Feed]
+    edges: [Edge]
     pageInfo: PageInfo
   }
 
   type Query {
     project(id: Int!): Project!
     user(id: Int!): User!
-    feed(cursor: String, userType: String): Response
+    feed(after: String, userType: String): Response
   }
 `;
 
